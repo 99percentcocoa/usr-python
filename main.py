@@ -3,6 +3,7 @@ import logging
 from isc_parser import Parser
 from wxconv import WXC
 import requests, json
+# use multithreading in the future
 # import threading
 
 # setting up debug
