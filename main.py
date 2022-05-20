@@ -42,10 +42,12 @@ def main():
     # print(toWx(input))
     # print(getMorph(input)["morphOut"])
     # print(parse(input))
+    wxOutput = toWx(input)
 
     # line 1 - original sentence
     print(f"# {input}")
     # line 2 - concepts
+    print(wxOutput.split(" "))
     # line 3 - concepts index
     # line 4 - semantic category of nouns
     # line 5 - GNP info
