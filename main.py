@@ -3,7 +3,7 @@ import logging
 from isc_parser import Parser
 from wxconv import WXC
 import requests, json
-import threading
+# import threading
 
 # setting up debug
 logging.basicConfig(level=logging.DEBUG)
