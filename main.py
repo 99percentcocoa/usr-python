@@ -2,9 +2,9 @@ from __future__ import unicode_literals
 import logging
 from isc_parser import Parser
 from wxconv import WXC
-import requests, json
+import requests
+import json
 import re
-from itertools import islice
 # use multithreading in the future
 # import threading
 
