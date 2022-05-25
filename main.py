@@ -72,30 +72,30 @@ def search_TAM(key):
         return None
             
 
-def main():
+def main(inputString):
 
     # add space before final punctuation mark if none, using regex matching
-    if (bool(re.search(r'(?<=[^ ])[।?]', input[-2:]))):
-        inputFinalSeparated = input[:-1] + ' ' + input[-1:]
+    if (bool(re.search(r'(?<=[^ ])[।?]', inputString[-2:]))):
+        inputStringFinalSeparated = inputString[:-1] + ' ' + inputString[-1:]
     else:
-        inputFinalSeparated = input
+        inputStringFinalSeparated = inputString
     
-    wxString = toWx(inputFinalSeparated)
+    wxString = toWx(inputStringFinalSeparated)
     # logging.debug(wxString)
 
     wxArray = wxString.split(' ')
    #  logging.debug(wxArray)
 
-    # parser run on inputFinalSeparated, not raw input
+    # parser run on inputStringFinalSeparated, not raw inputString
     # note, parser index corresponds to wxArray index
-    parserOutput = parse(inputFinalSeparated)
+    parserOutput = parse(inputStringFinalSeparated)
     # logging.debug(parserOutput)
 
     # words not found in dictionary
     dictWarnings = []
 
     # line 1 - original sentence
-    print(f"# {input}")
+    line1String = f"# {inputString}"
 
     # - - - - - - - - - -
 
@@ -106,8 +106,8 @@ def main():
 
     logging.debug(parserOutput)
 
-    # array containing the indices of final row 2 words, in the original wx array.
-    row2index = []
+    # array containing the indices of final row 2 words, in wxArray.
+    line2index = []
 
     # iterate through wx array, using while and counter
     count = 0
@@ -123,8 +123,9 @@ def main():
         # if pof, append to line2 with plus, followed by next
         elif (parserOutput[count][7] == 'pof'):
             line2 = line2 + val + '+'
+            line2index.append(count)
             count += 1
-        # if symbol, don't append to line2
+        # if symbol, don't append to line2 and move on
         elif (parserOutput[count][3] == 'SYM'):
             # line2 = line2 + val
             count += 1
@@ -132,6 +133,9 @@ def main():
         elif (parserOutput[count][3] == 'VM'):
             logging.debug(f'VM found: {val}')
             # scan ahead to get the entire verb group
+            # append to line2index of not preceeded by + or -
+            if (line2[-1] not in ('+', '-')):
+                line2index.append(count)
             verbGroup = ''
             verbCount = count
             while (parserOutput[verbCount][3] in ('VM', 'VAUX', 'VAUX_CONT')):
@@ -147,6 +151,7 @@ def main():
             count = verbCount
         # append to line2, search in dictionary, warning if not found in dictionary
         else:
+            line2index.append(count)
             line2 = ''.join((line2, val, '_1,'))
             if (search_concept(val + "_1") == False):
                  dictWarnings.append(''.join((val, "_1")))
@@ -157,8 +162,11 @@ def main():
         line2 = line2[:-1]
     
     line2Array = line2.split(',')
-    print(",".join(str(x) for x in line2Array))
+    line2String = ",".join(str(x) for x in line2Array)
     logging.debug(f'dict warnings: warnings: {dictWarnings}')
+
+    # logging.warning(f'line2index: {line2index}')
+    # logging.warning(f'wxArray: {wxArray}')
 
     # - - - - - - - - - -
 
@@ -169,7 +177,7 @@ def main():
     for index, value in enumerate(line2Array):
         line3Array.append(index+1)
     
-    print(",".join(str(x) for x in line3Array))
+    line3String = ",".join(str(x) for x in line3Array)
 
     # - - - - - - - - - -
 
@@ -179,7 +187,7 @@ def main():
     for index, value in enumerate(line2Array):
         line4Array.append('')
     
-    print(",".join(str(x) for x in line4Array))
+    line4String = ",".join(str(x) for x in line4Array)
 
     # - - - - - - - - - -
 
@@ -189,7 +197,7 @@ def main():
     for index, value in enumerate(line2Array):
         line5Array.append('')
     
-    print(",".join(str(x) for x in line5Array))
+    line5String = ",".join(str(x) for x in line5Array)
 
     # - - - - - - - - - -
 
@@ -199,7 +207,7 @@ def main():
     for index, value in enumerate(line2Array):
         line6Array.append('')
     
-    print(",".join(str(x) for x in line6Array))
+    line6String = ",".join(str(x) for x in line6Array)
 
     # - - - - - - - - - -
 
@@ -209,7 +217,7 @@ def main():
     for index, value in enumerate(line2Array):
         line7Array.append('')
     
-    print(",".join(str(x) for x in line7Array))
+    line7String = ",".join(str(x) for x in line7Array)
 
     # - - - - - - - - - -
 
@@ -219,7 +227,7 @@ def main():
     for index, value in enumerate(line2Array):
         line8Array.append('')
     
-    print(",".join(str(x) for x in line8Array))
+    line8String = ",".join(str(x) for x in line8Array)
 
     # - - - - - - - - - -
 
@@ -229,7 +237,7 @@ def main():
     for index, value in enumerate(line2Array):
         line9Array.append('')
     
-    print(",".join(str(x) for x in line9Array))
+    line9String = ",".join(str(x) for x in line9Array)
 
     # - - - - - - - - - -
 
@@ -240,7 +248,22 @@ def main():
         line10 = 'interrogative'
     elif (wxString[-1] in ("|", "।", ".")):
         line10 = 'affirmative'
-    print(line10)
+    # print(line10)
+
+    returnDict = {
+        'line1': line1String,
+        'line2': line2Array,
+        'line3': line3Array,
+        'line4': line4Array,
+        'line5': line5Array,
+        'line6': line6Array,
+        'line7': line7Array,
+        'line8': line8Array,
+        'line9': line9Array,
+        'line10': line10
+    }
+
+    return returnDict
 
 if __name__ == "__main__":
-    main()
+    print(main(input))
