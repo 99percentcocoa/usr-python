@@ -5,8 +5,6 @@ from wxconv import WXC
 import requests
 import json
 import re
-# use multithreading in the future
-# import threading
 
 # setting up debug
 logging.basicConfig(level=logging.WARNING)
@@ -84,12 +82,14 @@ def main(inputString):
     # logging.debug(wxString)
 
     wxArray = wxString.split(' ')
-   #  logging.debug(wxArray)
+    #  logging.debug(wxArray)
 
     # parser run on inputStringFinalSeparated, not raw inputString
     # note, parser index corresponds to wxArray index
     parserOutput = parse(inputStringFinalSeparated)
     # logging.debug(parserOutput)
+
+    morphOutput = getMorph(inputStringFinalSeparated)
 
     # words not found in dictionary
     dictWarnings = []
