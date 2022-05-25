@@ -106,6 +106,9 @@ def main():
 
     logging.debug(parserOutput)
 
+    # array containing the indices of final row 2 words, in the original wx array.
+    row2index = []
+
     # iterate through wx array, using while and counter
     count = 0
 
@@ -154,7 +157,7 @@ def main():
         line2 = line2[:-1]
     
     line2Array = line2.split(',')
-    print(line2Array)
+    print(",".join(str(x) for x in line2Array))
     logging.debug(f'dict warnings: warnings: {dictWarnings}')
 
     # - - - - - - - - - -
@@ -166,37 +169,78 @@ def main():
     for index, value in enumerate(line2Array):
         line3Array.append(index+1)
     
-    print(line3Array)
+    print(",".join(str(x) for x in line3Array))
 
     # - - - - - - - - - -
 
     # line 4 - semantic category of nouns
 
+    line4Array = []
+    for index, value in enumerate(line2Array):
+        line4Array.append('')
     
+    print(",".join(str(x) for x in line4Array))
 
     # - - - - - - - - - -
 
     # line 5 - GNP info
 
+    line5Array = []
+    for index, value in enumerate(line2Array):
+        line5Array.append('')
+    
+    print(",".join(str(x) for x in line5Array))
+
     # - - - - - - - - - -
 
     # line 6 - dependency relations
+
+    line6Array = []
+    for index, value in enumerate(line2Array):
+        line6Array.append('')
+    
+    print(",".join(str(x) for x in line6Array))
 
     # - - - - - - - - - -
 
     # line 7 - discourse elements
 
+    line7Array = []
+    for index, value in enumerate(line2Array):
+        line7Array.append('')
+    
+    print(",".join(str(x) for x in line7Array))
+
     # - - - - - - - - - -
 
     # line 8 - speaker's view points
+
+    line8Array = []
+    for index, value in enumerate(line2Array):
+        line8Array.append('')
+    
+    print(",".join(str(x) for x in line8Array))
 
     # - - - - - - - - - -
 
     # line 9 - scope
 
+    line9Array = []
+    for index, value in enumerate(line2Array):
+        line9Array.append('')
+    
+    print(",".join(str(x) for x in line9Array))
+
     # - - - - - - - - - -
 
     # line 10 - sentence type
+
+    line10 = ''
+    if (wxString[-1] == '?'):
+        line10 = 'interrogative'
+    elif (wxString[-1] in ("|", "।", ".")):
+        line10 = 'affirmative'
+    print(line10)
 
 if __name__ == "__main__":
     main()
