@@ -268,12 +268,15 @@ def main(inputString):
     # line 10 - sentence type
 
     line10 = ''
-    if (wxString[-1] == '?'):
-        line10 = 'interrogative'
-    elif (wxString[-1] in ("|", "।", ".")):
-        line10 = 'affirmative'
+    # scan whole string for नही or नहीं
+    if len(re.findall('(nahIM)|(nahI)', wxString)) > 0:
+        line10 = 'negative'
+    else:
+        if (wxString[-1] == '?'):
+            line10 = 'interrogative'
+        elif (wxString[-1] in ("|", "।", ".")):
+            line10 = 'affirmative'
     
-    # nahi anywhere in sentence
     # print(line10)
 
     returnDict = {
