@@ -7,7 +7,7 @@ import json
 import re
 
 # setting up debug
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
 
 con = WXC(order="utf2wx")
 
@@ -22,7 +22,7 @@ tamDictFile = "TAM-num-per-details.tsv.wx"
 
 # returns wx string
 def toWx(inputString):
-    logging.debug("converting to wx.")
+    # logging.debug("converting to wx.")
 
     wx_str = con.convert(inputString)
     return wx_str.strip()
@@ -60,7 +60,7 @@ def search_TAM(key):
         while (len(temp) > 0):
             for line in lines:
                 if bool(re.search(f'\s{temp}\s', line)):
-                    logging.debug(f'{temp} match line found: {line}')
+                    # logging.debug(f'{temp} match line found: {line}')
                     return removed + '_1-' + line.split('	')[0]
             # logging.debug(f'match not found for {temp}')
             removed = removed + temp[0]
@@ -104,7 +104,7 @@ def main(inputString):
     # starting with string for easy appending, will later split into array
     line2 = ''
 
-    logging.debug(parserOutput)
+    # logging.debug(parserOutput)
 
     # array containing the indices of final row 2 words, in wxArray.
     line2index = []
@@ -114,11 +114,11 @@ def main(inputString):
 
     while count < len(wxArray):
         val = wxArray[count]
-        logging.debug(f'at word {val}.')
-        logging.debug(f'Parser output for {val}: {parserOutput[count]}')
+        # logging.debug(f'at word {val}.')
+        # logging.debug(f'Parser output for {val}: {parserOutput[count]}')
         # skip if lwg__psp
         if (parserOutput[count][7] == 'lwg__psp'):
-            logging.debug(f'{val}: lwg__psp. Skipping.')
+            # logging.debug(f'{val}: lwg__psp. Skipping.')
             count += 1
         # if pof, append to line2 with plus, followed by next
         elif (parserOutput[count][7] == 'pof'):
@@ -131,7 +131,7 @@ def main(inputString):
             count += 1
         # if verb group then search entire verb group in TAM
         elif (parserOutput[count][3] == 'VM'):
-            logging.debug(f'VM found: {val}')
+            # logging.debug(f'VM found: {val}')
             # scan ahead to get the entire verb group
             # append to line2index of not preceeded by + or -
             if (line2[-1] not in ('+', '-')):
@@ -141,13 +141,13 @@ def main(inputString):
             while (parserOutput[verbCount][3] in ('VM', 'VAUX', 'VAUX_CONT')):
                 verbGroup = ' '.join((verbGroup, wxArray[verbCount])).strip()
                 verbCount += 1
-            logging.debug(f'Searching {verbGroup} in TAM.')
+            # logging.debug(f'Searching {verbGroup} in TAM.')
             searchTAM = search_TAM(verbGroup)
             if (bool(searchTAM)):
                 line2 = ''.join((line2, searchTAM, ','))
             else:
                 line2 = ''.join((line2, val, '_1,'))
-            logging.debug(f'line2: {line2}')
+            # logging.debug(f'line2: {line2}')
             count = verbCount
         # append to line2, search in dictionary, warning if not found in dictionary
         else:
@@ -183,9 +183,33 @@ def main(inputString):
 
     # line 4 - semantic category of nouns
 
+    # last word in NER entries if there, else not there
+    NERarray = morphOutput['nerOut'].split('\n')
+
+    # slice to remove <sentence id> lines at the beginning and end
+    NERarray = NERarray[1:-1]
+    logging.debug(f'NERarray: {NERarray}')
+
     line4Array = []
-    for index, value in enumerate(line2Array):
-        line4Array.append('')
+
+    # iterate over values of line2index
+    logging.debug(f'line2index: {line2index}')
+    for val in line2index:
+        lineArray = NERarray[val].split('\t')
+        logging.debug(f'current line: {NERarray[val]}')
+        if (len(lineArray) > 3):
+            lastWord = lineArray[-1]
+            if lastWord == "person":
+                line4Array.append('per')
+            elif lastWord == "location":
+                line4Array.append('loc')
+            elif lastWord == 'organization':
+                line4Array.append('org')
+            else:
+                line4Array.append('')
+        else:
+            logging.debug(f'No semantic value found.')
+            line4Array.append('')
     
     line4String = ",".join(str(x) for x in line4Array)
 
@@ -248,6 +272,8 @@ def main(inputString):
         line10 = 'interrogative'
     elif (wxString[-1] in ("|", "।", ".")):
         line10 = 'affirmative'
+    
+    # nahi anywhere in sentence
     # print(line10)
 
     returnDict = {
