@@ -219,7 +219,7 @@ def main(inputString):
 
     # if conditions are met, then get GNP from prune output
 
-    logging.debug(f'pruneArray: {pruneArray}')
+    # logging.debug(f'pruneArray: {pruneArray}')
 
     line5Array = []
     
@@ -234,11 +234,11 @@ def main(inputString):
                 gnpArray[2] = 'a'
             elif gnpArray[2] == 'any':
                 gnpArray[2] = '-'
-            logging.debug(f'gnpArray for {wxArray[val]}: {gnpArray}')
+            # logging.debug(f'gnpArray for {wxArray[val]}: {gnpArray}')
             line5Array.append(f"[{' '.join(str(x) for x in gnpArray)}]")
         else:
             line5Array.append('')
-        logging.debug(f'line5: {line5Array}')
+        # logging.debug(f'line5: {line5Array}')
 
     
     line5String = ",".join(str(x) for x in line5Array)
@@ -248,8 +248,36 @@ def main(inputString):
     # line 6 - dependency relations
 
     line6Array = []
-    for index, value in enumerate(line2Array):
-        line6Array.append('')
+
+    # list of indices of main verbs in wxArray/parserOutput
+    VMArray = []
+    for index, value in enumerate(parserOutput):
+        if (value[3] == 'VM'):
+            VMArray.append(index)
+    logging.debug(f'VMArray: {VMArray}')
+
+    for index, val in enumerate(line2index):
+        if (parserOutput[val][7] in ('nmod__adj', 'adv', 'pof__cn', 'jjmod__intf', 'r6')):
+            if (parserOutput[val][3] == 'QC'):
+                line6Array.append(f'{val}:card')
+            elif (parserOutput[val][3] == 'QO'):
+                line6Array.append(f'{val}:ord')
+            elif (parserOutput[val][7] == 'adv'):
+                line6Array.append(f'{val}:kr_vn')
+            elif (parserOutput[val][7] == 'nmod__adj'):
+                line6Array.append(f'{val}:mod')
+            elif (parserOutput[val][7] == 'pof__cn'):
+                line6Array.append(f'{val}.{val+1}/{val}.{line2index[index+1]-1}:pof__cn')
+            else:
+                line6Array.append(f'{val}:{parserOutput[val][7]}')
+        elif ((int(parserOutput[val][6])-1 in VMArray) and (parserOutput[val][3] != 'VM') and (parserOutput[val][7] not in ('pof', 'rysm', 'lwg__vaux', 'lwg__vaux_cont', 'lwg__psp'))):
+            if ((parserOutput[val][7] == 'k1') and (parserOutput[val+1][7] == 'k1s') and (parserOutput[val][6] == parserOutput[val+1][6])):
+                line6Array.append('samAnAXi,samAnAXi')
+            elif (parserOutput[val][7] == 'k1s'):
+                line6Array.append('')
+            else:
+                line6Array.append(f'{val}:{parserOutput[val][7]}')
+
     
     line6String = ",".join(str(x) for x in line6Array)
 
@@ -268,8 +296,12 @@ def main(inputString):
     # line 8 - speaker's view points
 
     line8Array = []
-    for index, value in enumerate(line2Array):
-        line8Array.append('')
+    for val in line2index:
+        if (parserOutput[val][7] in ('lwg__rp', 'lwg__neg')):
+            if (parserOutput[val][7] == 'lwg__neg'):
+                line8Array.append(f'{val}:neg')
+            else:
+                line8Array.append(f'{val}:{wxArray[val]}')
     
     line8String = ",".join(str(x) for x in line8Array)
 
