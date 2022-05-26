@@ -277,6 +277,8 @@ def main(inputString):
                 line6Array.append('')
             else:
                 line6Array.append(f'{val}:{parserOutput[val][7]}')
+        else:
+            line6Array.append('')
 
     
     line6String = ",".join(str(x) for x in line6Array)
@@ -302,6 +304,8 @@ def main(inputString):
                 line8Array.append(f'{val}:neg')
             else:
                 line8Array.append(f'{val}:{wxArray[val]}')
+        else:
+            line8Array.append('')
     
     line8String = ",".join(str(x) for x in line8Array)
 
