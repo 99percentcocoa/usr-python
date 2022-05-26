@@ -178,7 +178,7 @@ def main(inputString):
     line3Array = []
 
     for index, value in enumerate(line2Array):
-        line3Array.append(index+1)
+        line3Array.append(f'{index+1}')
     
     line3String = ",".join(str(x) for x in line3Array)
 
@@ -351,4 +351,6 @@ def main(inputString):
     return returnDict
 
 if __name__ == "__main__":
-    print(main(input))
+    object = json.dumps(main(input), indent=4)
+    print(object)
+    # print(main(input))
