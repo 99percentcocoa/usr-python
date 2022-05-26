@@ -90,6 +90,9 @@ def main(inputString):
     # logging.debug(parserOutput)
 
     morphOutput = getMorph(inputStringFinalSeparated)
+    # slice to remove <sentence id> lines at the beginning and end
+    NERarray = morphOutput['nerOut'].split('\n')[1:-1]
+    pruneArray = morphOutput['pruneOut'].split('\n')[1:-1]
 
     # words not found in dictionary
     dictWarnings = []
@@ -184,19 +187,16 @@ def main(inputString):
     # line 4 - semantic category of nouns
 
     # last word in NER entries if there, else not there
-    NERarray = morphOutput['nerOut'].split('\n')
-
-    # slice to remove <sentence id> lines at the beginning and end
-    NERarray = NERarray[1:-1]
-    logging.debug(f'NERarray: {NERarray}')
+    
+    # logging.debug(f'NERarray: {NERarray}')
 
     line4Array = []
 
     # iterate over values of line2index
-    logging.debug(f'line2index: {line2index}')
+    # logging.debug(f'line2index: {line2index}')
     for val in line2index:
         lineArray = NERarray[val].split('\t')
-        logging.debug(f'current line: {NERarray[val]}')
+        # logging.debug(f'current line: {NERarray[val]}')
         if (len(lineArray) > 3):
             lastWord = lineArray[-1]
             if lastWord == "person":
@@ -208,7 +208,7 @@ def main(inputString):
             else:
                 line4Array.append('')
         else:
-            logging.debug(f'No semantic value found.')
+            # logging.debug(f'No semantic value found.')
             line4Array.append('')
     
     line4String = ",".join(str(x) for x in line4Array)
@@ -217,9 +217,29 @@ def main(inputString):
 
     # line 5 - GNP info
 
+    # if conditions are met, then get GNP from prune output
+
+    logging.debug(f'pruneArray: {pruneArray}')
+
     line5Array = []
-    for index, value in enumerate(line2Array):
-        line5Array.append('')
+    
+    for val in line2index:
+        if (parserOutput[val][7] in ('r6', 'k7', 'k1', 'k2', 'k7p', 'ras-k1', 'k2p', 'r6-k2', 'k5', 'rt')):
+            gnpArray = pruneArray[val].split('\t')[3].split(',')[2:5]
+            if gnpArray[2] == '1':
+                gnpArray[2] = 'u'
+            elif gnpArray[2] == '2':
+                gnpArray[2] = 'm'
+            elif gnpArray[2] == '3':
+                gnpArray[2] = 'a'
+            elif gnpArray[2] == 'any':
+                gnpArray[2] = '-'
+            logging.debug(f'gnpArray for {wxArray[val]}: {gnpArray}')
+            line5Array.append(f"[{' '.join(str(x) for x in gnpArray)}]")
+        else:
+            line5Array.append('')
+        logging.debug(f'line5: {line5Array}')
+
     
     line5String = ",".join(str(x) for x in line5Array)
 
