@@ -9,8 +9,6 @@ Follow the instructions in the following links:
 
 Install the following packages:
 
-Flask: ```pip install flask```
-
 Requests: ```pip install requests```
 
 wxconv: ```pip install wxconv```
