@@ -6,6 +6,9 @@ import requests
 import json
 import re
 
+from importlib import resources
+import io
+
 # setting up logging
 logging.basicConfig(level=logging.WARNING)
 
@@ -48,7 +51,10 @@ def parse(inputString):
 
 # returns true or false, whether term present in concept dict
 def search_concept(key):
-    with open(conceptDictFile, 'r') as fp:
+
+
+    # with open(conceptDictFile, 'r') as fp:
+    with resources.open_text('usr_python', conceptDictFile) as fp:
         for l_no, line in enumerate(fp):
             if key in line:
                 return True
@@ -58,7 +64,7 @@ def search_concept(key):
 def search_TAM(key):
     temp = key
     removed = ''
-    with open(tamDictFile, 'r') as fp:
+    with resources.open_text('usr_python', tamDictFile) as fp:
         lines = fp.readlines()
         while (len(temp) > 0):
             for line in lines:
@@ -364,7 +370,7 @@ def getUSR(inputString):
     
     return returnDict
 
-if __name__ == "__main__":
-    object = json.dumps(getUSR(input), indent=4)
-    print(object)
-    # print(main(input))
+# if __name__ == "__main__":
+#     object = json.dumps(getUSR(input), indent=4)
+#     print(object)
+#     # print(main(input))

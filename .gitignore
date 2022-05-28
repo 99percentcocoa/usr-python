@@ -1,7 +1,6 @@
-/input.txt
-/oup.xlsx
-/new_dup.cpp
-/test.py
-/out.txt
-/omron.py
 __pycache__/
+build/
+dist/
+eggs/
+.eggs/
+*.egg-info/
