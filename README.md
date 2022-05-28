@@ -2,12 +2,17 @@
 
 Install iscnlp-tagger, and then iscnlp-parser:
 Follow the instructions in the following links:
+
 [iscnlp / pos-tagger](https://bitbucket.org/iscnlp/pos-tagger/src/master/)
+
 [iscnlp / parser](https://bitbucket.org/iscnlp/parser/src/master/)
 
 Install the following packages:
+
 Flask: ```pip install flask```
+
 Requests: ```pip install requests```
+
 wxconv: ```pip install wxconv```
 
 # Usage
