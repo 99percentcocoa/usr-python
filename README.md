@@ -40,7 +40,8 @@ Input:
 
 Output:
 
-```{
+```
+{
     "sentence_1": {
         "original": "# सूर्यास्त के बाद आकाश को देखना कितना अच्छा लगता है।",
         "concepts": [
@@ -277,4 +278,5 @@ Output:
         ],
         "sentence_type": "affirmative"
     }
-}```
+}
+```
