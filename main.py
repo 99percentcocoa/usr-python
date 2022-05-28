@@ -7,7 +7,7 @@ import json
 import re
 
 # setting up debug
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 
 con = WXC(order="utf2wx")
 
@@ -70,7 +70,7 @@ def search_TAM(key):
         return None
             
 
-def main(inputString):
+def getUSR(inputString):
 
     # add space before final punctuation mark if none, using regex matching
     if (bool(re.search(r'(?<=[^ ])[।?]', inputString[-2:]))):
@@ -351,6 +351,6 @@ def main(inputString):
     return returnDict
 
 if __name__ == "__main__":
-    object = json.dumps(main(input), indent=4)
+    object = json.dumps(getUSR(input), indent=4)
     print(object)
     # print(main(input))
