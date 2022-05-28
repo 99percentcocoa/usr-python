@@ -7,17 +7,21 @@ Follow the instructions in the following links:
 
 [iscnlp / parser](https://bitbucket.org/iscnlp/parser/src/master/)
 
-Install the following packages:
+Clone the project:
 
-Requests: ```pip install requests```
+```git clone https://github.com/99percentcocoa/usr_python.git```
 
-wxconv: ```pip install wxconv```
+```cd usr_python```
+
+```sudo pip install -r requirements.txt```
+
+```sudo pip install .```
 
 # Usage
 
-With the `main.py` file in your project directory, import it in the required file using
+Import the package in your project using
 
-```import main```
+```from usr_python import main```
 
 The USR function can then be called by `main.getUSR[input]`, where `input` is the Hindi string whose USR is to be generated.
 
