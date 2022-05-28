@@ -6,14 +6,17 @@ import requests
 import json
 import re
 
-# setting up debug
+# setting up logging
 logging.basicConfig(level=logging.WARNING)
 
 con = WXC(order="utf2wx")
 
 parser = Parser(lang='hin')
 
-input = u"सूर्यास्त के बाद आकाश को देखना कितना अच्छा लगता है।"
+input = u"""सूर्यास्त के बाद आकाश को देखना कितना अच्छा लगता है।
+आप उनकी गणना नहीं कर सकते।
+इनमें से कुछ टिमटिमाते प्रतीत होते हैं।
+ये बिना किसी टिमटिमाहट के चंद्रमा के समान चमकते हैं।"""
 
 morphURL = "https://ssmt.iiit.ac.in/samparkuniverse"
 
@@ -70,7 +73,7 @@ def search_TAM(key):
         return None
             
 
-def getUSR(inputString):
+def getSentenceUSR(inputString):
 
     # add space before final punctuation mark if none, using regex matching
     if (bool(re.search(r'(?<=[^ ])[।?]', inputString[-2:]))):
@@ -336,18 +339,29 @@ def getUSR(inputString):
     # print(line10)
 
     returnDict = {
-        'line1': line1String,
-        'line2': line2Array,
-        'line3': line3Array,
-        'line4': line4Array,
-        'line5': line5Array,
-        'line6': line6Array,
-        'line7': line7Array,
-        'line8': line8Array,
-        'line9': line9Array,
-        'line10': line10
+        'original': line1String,
+        'concepts': line2Array,
+        'concepts_index': line3Array,
+        'semantic': line4Array,
+        'gnp': line5Array,
+        'dependency': line6Array,
+        'discourse': line7Array,
+        'speaker_viewpoints': line8Array,
+        'scope': line9Array,
+        'sentence_type': line10
     }
 
+    return returnDict
+
+# wrapper for main function, allows passing of multi-line sentences
+def getUSR(inputString):
+    lines = inputString.split('\n')
+    returnDict = {}
+
+    for num, line in enumerate(lines):
+        indexstr = '_'.join(('sentence', str(num+1)))
+        returnDict[indexstr] = getSentenceUSR(line)
+    
     return returnDict
 
 if __name__ == "__main__":
