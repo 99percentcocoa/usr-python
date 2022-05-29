@@ -10,16 +10,13 @@ from importlib import resources
 import io
 
 # setting up logging
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
 
 con = WXC(order="utf2wx")
 
 parser = Parser(lang='hin')
 
-input = u"""सूर्यास्त के बाद आकाश को देखना कितना अच्छा लगता है।
-आप उनकी गणना नहीं कर सकते।
-इनमें से कुछ टिमटिमाते प्रतीत होते हैं।
-ये बिना किसी टिमटिमाहट के चंद्रमा के समान चमकते हैं।"""
+input = u"""मैं भारतीय विद्याभवन स्कूल में पढता हूँ ।"""
 
 morphURL = "https://ssmt.iiit.ac.in/samparkuniverse"
 
@@ -121,6 +118,9 @@ def getSentenceUSR(inputString):
     # array containing the indices of final row 2 words, in wxArray.
     line2index = []
 
+    # array for mapping items in wx/parser to items in line 2
+    wx_line2 = []
+
     # iterate through wx array, using while and counter
     count = 0
 
@@ -131,28 +131,33 @@ def getSentenceUSR(inputString):
         # skip if lwg__psp
         if (parserOutput[count][7] == 'lwg__psp'):
             # logging.debug(f'{val}: lwg__psp. Skipping.')
+            wx_line2.append(line2index[-1] if bool(line2index) else None)
             count += 1
         # if pof, append to line2 with plus, followed by next
-        elif (parserOutput[count][7] == 'pof'):
+        elif (parserOutput[count][7] in ('pof')):
             line2 = line2 + val + '+'
             line2index.append(count)
+            wx_line2.append(line2index[-1] if bool(line2index) else None)
             count += 1
         # if symbol, don't append to line2 and move on
         elif (parserOutput[count][3] == 'SYM'):
             # line2 = line2 + val
+            wx_line2.append(line2index[-1] if bool(line2index) else None)
             count += 1
         # if verb group then search entire verb group in TAM
         elif (parserOutput[count][3] == 'VM'):
             # logging.debug(f'VM found: {val}')
             # scan ahead to get the entire verb group
-            # append to line2index of not preceeded by + or -
+            # append to line2index if not preceeded by + or -
             if (line2[-1] not in ('+', '-')):
                 line2index.append(count)
+                # wx_line2.append(count)
             verbGroup = ''
             verbCount = count
             while (parserOutput[verbCount][3] in ('VM', 'VAUX', 'VAUX_CONT')):
                 verbGroup = ' '.join((verbGroup, wxArray[verbCount])).strip()
                 verbCount += 1
+                wx_line2.append(line2index[-1] if bool(line2index) else None)
             # logging.debug(f'Searching {verbGroup} in TAM.')
             searchTAM = search_TAM(verbGroup)
             if (bool(searchTAM)):
@@ -164,6 +169,7 @@ def getSentenceUSR(inputString):
         # append to line2, search in dictionary, warning if not found in dictionary
         else:
             line2index.append(count)
+            wx_line2.append(count)
             line2 = ''.join((line2, val, '_1,'))
             if (search_concept(val + "_1") == False):
                  dictWarnings.append(''.join((val, "_1")))
@@ -263,29 +269,39 @@ def getSentenceUSR(inputString):
     for index, value in enumerate(parserOutput):
         if (value[3] == 'VM'):
             VMArray.append(index)
-    logging.debug(f'VMArray: {VMArray}')
+    
+    # array for mapping words in wx/parser array to line2
+        
 
+    logging.debug(f'VMArray: {VMArray}')
+    logging.debug(f'line2index: {line2index}')
+    logging.debug(f'Parser output: {parserOutput}')
+    # logging.debug(f'wxArray: {wxArray}. len = {len(wxArray)}')
+    # logging.debug(f'wx_line2: {wx_line2}. len = {len(wx_line2)}')
+
+    # in the below for loop, index is the index in line2, val is the index in wxArray/parser
     for index, val in enumerate(line2index):
+        relatedTo = int(parserOutput[val][6])
         if (parserOutput[val][7] in ('nmod__adj', 'adv', 'pof__cn', 'jjmod__intf', 'r6')):
             if (parserOutput[val][3] == 'QC'):
-                line6Array.append(f'{val}:card')
+                line6Array.append(f'{line2index.index(wx_line2[relatedTo])+1}:card')
             elif (parserOutput[val][3] == 'QO'):
-                line6Array.append(f'{val}:ord')
+                line6Array.append(f'{line2index.index(wx_line2[relatedTo])+1}:ord')
             elif (parserOutput[val][7] == 'adv'):
-                line6Array.append(f'{val}:kr_vn')
+                line6Array.append(f'{line2index.index(wx_line2[relatedTo])+1}:kr_vn')
             elif (parserOutput[val][7] == 'nmod__adj'):
-                line6Array.append(f'{val}:mod')
+                line6Array.append(f'{line2index.index(wx_line2[relatedTo])+1}:mod')
             elif (parserOutput[val][7] == 'pof__cn'):
-                line6Array.append(f'{val}.{val+1}/{val}.{line2index[index+1]-1}:pof__cn')
+                line6Array.append(f'{line2index.index(val)+1}.{val}/{line2index.index(val)+1}.{relatedTo}:pof__cn')
             else:
-                line6Array.append(f'{val}:{parserOutput[val][7]}')
+                line6Array.append(f'{line2index.index(wx_line2[relatedTo])+1}:{parserOutput[val][7]}')
         elif ((int(parserOutput[val][6])-1 in VMArray) and (parserOutput[val][3] != 'VM') and (parserOutput[val][7] not in ('pof', 'rysm', 'lwg__vaux', 'lwg__vaux_cont', 'lwg__psp'))):
             if ((parserOutput[val][7] == 'k1') and (parserOutput[val+1][7] == 'k1s') and (parserOutput[val][6] == parserOutput[val+1][6])):
                 line6Array.append('samAnAXi,samAnAXi')
             elif (parserOutput[val][7] == 'k1s'):
                 line6Array.append('')
             else:
-                line6Array.append(f'{val}:{parserOutput[val][7]}')
+                line6Array.append(f'{line2index.index(wx_line2[relatedTo])+1}:{parserOutput[val][7]}')
         else:
             line6Array.append('')
 
@@ -370,7 +386,7 @@ def getUSR(inputString):
     
     return returnDict
 
-# if __name__ == "__main__":
-#     object = json.dumps(getUSR(input), indent=4)
-#     print(object)
-#     # print(main(input))
+if __name__ == "__main__":
+    object = json.dumps(getUSR(input), indent=4)
+    print(object)
+    # print(main(input))
