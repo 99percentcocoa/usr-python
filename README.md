@@ -23,7 +23,7 @@ Import the package in your project using
 
 ```from usr_python import main```
 
-The USR function can then be called by `main.getUSR[input]`, where `input` is the Hindi string whose USR is to be generated.
+The USR function can then be called by `main.getUSR(input)`, where `input` is the Hindi string whose USR is to be generated.
 
 Output will be a python dictionary containing the sentence's USR representation.
 

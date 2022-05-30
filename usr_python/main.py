@@ -10,13 +10,13 @@ from importlib import resources
 import io
 
 # setting up logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 
 con = WXC(order="utf2wx")
 
 parser = Parser(lang='hin')
 
-input = u"""मैं भारतीय विद्याभवन स्कूल में पढता हूँ ।"""
+input = u"""सूर्यास्त के बाद आकाश को देखना कितना अच्छा लगता है।"""
 
 morphURL = "https://ssmt.iiit.ac.in/samparkuniverse"
 
@@ -386,7 +386,7 @@ def getUSR(inputString):
     
     return returnDict
 
-if __name__ == "__main__":
-    object = json.dumps(getUSR(input), indent=4)
-    print(object)
-    # print(main(input))
+# if __name__ == "__main__":
+#     object = json.dumps(getUSR(input), indent=4)
+#     print(object)
+#     # print(main(input))
