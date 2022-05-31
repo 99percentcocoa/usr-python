@@ -10,14 +10,14 @@ from importlib import resources
 import io
 
 # setting up logging
-# logging.basicConfig(level=logging.DEBUG)
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.WARNING)
 
 con = WXC(order="utf2wx")
 
 parser = Parser(lang='hin')
 
-input = u"""आसमान में पहले एक या दो चमकते बिंदु ही दिखते हैं, लेकिन बाद में इनकी संख्या बढ़ती जाती है।"""
+input = u"""आप उनकी गणना नहीं कर सकते।"""
 
 morphURL = "https://ssmt.iiit.ac.in/samparkuniverse"
 
@@ -97,7 +97,9 @@ def getSentenceUSR(inputString):
 
     morphOutput = getMorph(inputStringFinalSeparated)
     # slice to remove <sentence id> lines at the beginning and end
+    # logging.debug(morphOutput['nerOut'])
     NERarray = morphOutput['nerOut'].split('\n')[1:-1]
+    # logging.debug(NERarray)
     pruneArray = morphOutput['pruneOut'].split('\n')[1:-1]
 
     # words not found in dictionary
@@ -210,6 +212,7 @@ def getSentenceUSR(inputString):
     # iterate over values of line2index
     # logging.debug(f'line2index: {line2index}')
     for val in line2index:
+        # logging.debug(f'NERarray: {NERarray}, val = {val}')
         lineArray = NERarray[val].split('\t')
         # logging.debug(f'current line: {NERarray[val]}')
         if (len(lineArray) > 3):
@@ -373,16 +376,12 @@ def getSentenceUSR(inputString):
 
 # wrapper for main function, allows passing of multi-line sentences
 def getUSR(inputString):
-    lines = inputString.split('\n')
-    returnDict = {}
-
-    for num, line in enumerate(lines):
-        indexstr = '_'.join(('sentence', str(num+1)))
-        returnDict[indexstr] = getSentenceUSR(line)
+    logging.debug(len(inputString.split('\n')))
+    returnDict = getSentenceUSR(input)
     
     return returnDict
 
-# if __name__ == "__main__":
-#     # object = json.dumps(getUSR(input), indent=4)
-#     # print(object)
-#     print(getUSR(input))
+if __name__ == "__main__":
+    # object = json.dumps(getUSR(input), indent=4)
+    # print(object)
+    print(getUSR(input))
