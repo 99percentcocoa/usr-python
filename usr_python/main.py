@@ -10,8 +10,8 @@ from importlib import resources
 import io
 
 # setting up logging
-logging.basicConfig(level=logging.DEBUG)
-# logging.basicConfig(level=logging.WARNING)
+# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 
 con = WXC(order="utf2wx")
 
@@ -128,6 +128,10 @@ def getSentenceUSR(inputString):
 
     while count < len(wxArray):
         val = wxArray[count]
+
+        # either +, _ or ,
+        prevSymbol = line2[-1] if bool(line2index) else None
+
         # logging.debug(f'at word {val}.')
         # logging.debug(f'Parser output for {val}: {parserOutput[count]}')
         # skip if lwg__psp
@@ -136,10 +140,13 @@ def getSentenceUSR(inputString):
             wx_line2.append(line2index[-1] if bool(line2index) else None)
             count += 1
         # if pof, append to line2 with plus, followed by next
-        elif (parserOutput[count][7] in ('pof')):
+        elif (parserOutput[count][7] in ('pof', 'pof__cn')):
             line2 = line2 + val + '+'
-            line2index.append(count)
-            wx_line2.append(line2index[-1] if bool(line2index) else None)
+            if prevSymbol in ((',', None)):
+                line2index.append(count)
+                wx_line2.append(count)
+            else:
+                wx_line2.append(line2index[-1] if bool(line2index) else None)
             count += 1
         # if symbol, don't append to line2 and move on
         elif (parserOutput[count][3] == 'SYM'):
@@ -170,8 +177,11 @@ def getSentenceUSR(inputString):
             count = verbCount
         # append to line2, search in dictionary, warning if not found in dictionary
         else:
-            line2index.append(count)
-            wx_line2.append(count)
+            if prevSymbol in ((',', None)):
+                line2index.append(count)
+                wx_line2.append(count)
+            else:
+                wx_line2.append(line2index[-1] if bool(line2index) else None)
             line2 = ''.join((line2, val, '_1,'))
             if (search_concept(val + "_1") == False):
                  dictWarnings.append(''.join((val, "_1")))
@@ -181,6 +191,7 @@ def getSentenceUSR(inputString):
     if line2[-1] == ',':
         line2 = line2[:-1]
     
+    logging.debug(line2)
     line2Array = line2.split(',')
     line2String = ",".join(str(x) for x in line2Array)
     logging.debug(f'dict warnings: warnings: {dictWarnings}')
@@ -266,7 +277,8 @@ def getSentenceUSR(inputString):
 
     # line 6 - dependency relations
 
-    line6Array = []
+    # populate array with empty values
+    line6Array = [''] * len(line2Array)
 
     # list of indices of main verbs in wxArray/parserOutput
     VMArray = []
@@ -277,38 +289,94 @@ def getSentenceUSR(inputString):
     # array for mapping words in wx/parser array to line2
         
 
-    # logging.debug(f'VMArray: {VMArray}')
-    # logging.debug(f'line2index: {line2index}')
-    # logging.debug(f'Parser output: {parserOutput}')
-    # logging.debug(f'wxArray: {wxArray}. len = {len(wxArray)}')
-    # logging.debug(f'wx_line2: {wx_line2}. len = {len(wx_line2)}')
+    logging.debug(f'VMArray: {VMArray}')
+    logging.debug(f'line2index: {line2index}')
+    logging.debug(f'Parser output: {parserOutput}')
+    logging.debug(f'wxArray: {wxArray}. len = {len(wxArray)}')
+    logging.debug(f'wx_line2: {wx_line2}. len = {len(wx_line2)}')
 
     # in the below for loop, index is the index in line2, val is the index in wxArray/parser
-    for index, val in enumerate(line2index):
+    # for index, val in enumerate(line2index):
+    #     relatedTo = int(parserOutput[val][6])
+    #     logging.debug(f'At word {wxArray[val]}.')
+    #     if (parserOutput[val][7] in ('nmod__adj', 'adv', 'pof__cn', 'jjmod__intf', 'r6')):
+    #         if (parserOutput[val][3] == 'QC'):
+    #             logging.debug('1')
+    #             line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:card')
+    #         elif (parserOutput[val][3] == 'QO'):
+    #             logging.debug('2')
+    #             line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:ord')
+    #         elif (parserOutput[val][7] == 'adv'):
+    #             logging.debug('3')
+    #             line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:kr_vn')
+    #         elif (parserOutput[val][7] == 'nmod__adj'):
+    #             logging.debug('4')
+    #             line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:mod')
+    #         elif (parserOutput[val][7] == 'pof__cn'):
+    #             logging.debug('5')
+    #             line6Array.append(f'{line2index.index(val)+1}.{val+1}/{line2index.index(val)+1}.{relatedTo}:pof__cn')
+    #         else:
+    #             logging.debug('6')
+    #             line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:{parserOutput[val][7]}')
+    #     elif ((int(parserOutput[val][6])-1 in VMArray) and (parserOutput[val][3] != 'VM') and (parserOutput[val][7] not in ('pof', 'rysm', 'lwg__vaux', 'lwg__vaux_cont', 'lwg__psp'))):
+    #         if ((parserOutput[val][7] == 'k1') and (parserOutput[val+1][7] == 'k1s') and (parserOutput[val][6] == parserOutput[val+1][6])):
+    #             logging.debug('7')
+    #             line6Array.append('samAnAXi,samAnAXi')
+    #         elif (parserOutput[val][7] == 'k1s'):
+    #             logging.debug('8')
+    #             line6Array.append('')
+    #         else:
+    #             logging.debug('9')
+    #             line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:{parserOutput[val][7]}')
+    #     else:
+    #         logging.debug('10')
+    #         line6Array.append('')
+
+    for index, val in enumerate(wx_line2):
         relatedTo = int(parserOutput[val][6])
-        # logging.debug(f'At word {wxArray[val]}. This word is related to: {line2index.index(wx_line2[relatedTo])+1} {line2Array[line2index.index(wx_line2[relatedTo])]}')
+        logging.debug(f'At word {wxArray[index]}.')
         if (parserOutput[val][7] in ('nmod__adj', 'adv', 'pof__cn', 'jjmod__intf', 'r6')):
             if (parserOutput[val][3] == 'QC'):
-                line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:card')
+                logging.debug('1')
+                # line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:card')
+                line6Array[line2index.index(val)] = ' '.join((line6Array[line2index.index(val)], f'{line2index.index(wx_line2[relatedTo-1])+1}:card'))
             elif (parserOutput[val][3] == 'QO'):
-                line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:ord')
+                logging.debug('2')
+                # line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:ord')
+                line6Array[line2index.index(val)] = ' '.join((line6Array[line2index.index(val)], f'{line2index.index(wx_line2[relatedTo-1])+1}:ord'))
             elif (parserOutput[val][7] == 'adv'):
-                line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:kr_vn')
+                logging.debug('3')
+                # line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:kr_vn')
+                line6Array[line2index.index(val)] = ' '.join((line6Array[line2index.index(val)], f'{line2index.index(wx_line2[relatedTo-1])+1}:kr_vn'))
             elif (parserOutput[val][7] == 'nmod__adj'):
-                line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:mod')
+                logging.debug('4')
+                # line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:mod')
+                line6Array[line2index.index(val)] = ' '.join((line6Array[line2index.index(val)], f'{line2index.index(wx_line2[relatedTo-1])+1}:mod'))
             elif (parserOutput[val][7] == 'pof__cn'):
-                line6Array.append(f'{line2index.index(val)+1}.{val+1}/{line2index.index(val)+1}.{relatedTo}:pof__cn')
+                logging.debug('5')
+                # line6Array.append(f'{line2index.index(val)+1}.{val+1}/{line2index.index(val)+1}.{relatedTo}:pof__cn')
+                line6Array[line2index.index(val)] = ' '.join((line6Array[line2index.index(val)], f'{line2index.index(val)+1}.{val+1}/{line2index.index(val)+1}.{relatedTo}:pof__cn'))
             else:
-                line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:{parserOutput[val][7]}')
+                logging.debug('6')
+                # line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:{parserOutput[val][7]}')
+                line6Array[line2index.index(val)] = ' '.join((line6Array[line2index.index(val)], f'{line2index.index(wx_line2[relatedTo-1])+1}:{parserOutput[val][7]}'))
         elif ((int(parserOutput[val][6])-1 in VMArray) and (parserOutput[val][3] != 'VM') and (parserOutput[val][7] not in ('pof', 'rysm', 'lwg__vaux', 'lwg__vaux_cont', 'lwg__psp'))):
             if ((parserOutput[val][7] == 'k1') and (parserOutput[val+1][7] == 'k1s') and (parserOutput[val][6] == parserOutput[val+1][6])):
-                line6Array.append('samAnAXi,samAnAXi')
+                logging.debug('7')
+                # line6Array.append('samAnAXi,samAnAXi')
+                line6Array[line2index.index(val)] = ' '.join((line6Array[line2index.index(val)], 'samAnAXi,samAnAXi'))
             elif (parserOutput[val][7] == 'k1s'):
-                line6Array.append('')
+                logging.debug('8')
+                # do nothing
+                # line6Array.append('')
             else:
-                line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:{parserOutput[val][7]}')
+                logging.debug('9')
+                # line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:{parserOutput[val][7]}')
+                line6Array[line2index.index(val)] = ' '.join((line6Array[line2index.index(val)], f'{line2index.index(wx_line2[relatedTo-1])+1}:{parserOutput[val][7]}'))
         else:
-            line6Array.append('')
+            logging.debug('10')
+            # do nothing
+            # line6Array.append('')
 
     
     line6String = ",".join(str(x) for x in line6Array)
@@ -381,7 +449,7 @@ def getUSR(inputString):
     
     return returnDict
 
-if __name__ == "__main__":
-    # object = json.dumps(getUSR(input), indent=4)
-    # print(object)
-    print(getUSR(input))
+# if __name__ == "__main__":
+#     # object = json.dumps(getUSR(input), indent=4)
+#     # print(object)
+#     print(getUSR(input))
