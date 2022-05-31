@@ -10,13 +10,14 @@ from importlib import resources
 import io
 
 # setting up logging
+# logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig(level=logging.WARNING)
 
 con = WXC(order="utf2wx")
 
 parser = Parser(lang='hin')
 
-input = u"""सूर्यास्त के बाद आकाश को देखना कितना अच्छा लगता है।"""
+input = u"""आसमान में पहले एक या दो चमकते बिंदु ही दिखते हैं, लेकिन बाद में इनकी संख्या बढ़ती जाती है।"""
 
 morphURL = "https://ssmt.iiit.ac.in/samparkuniverse"
 
@@ -48,7 +49,6 @@ def parse(inputString):
 
 # returns true or false, whether term present in concept dict
 def search_concept(key):
-
 
     # with open(conceptDictFile, 'r') as fp:
     with resources.open_text('usr_python', conceptDictFile) as fp:
@@ -241,14 +241,15 @@ def getSentenceUSR(inputString):
     for val in line2index:
         if (parserOutput[val][7] in ('r6', 'k7', 'k1', 'k2', 'k7p', 'ras-k1', 'k2p', 'r6-k2', 'k5', 'rt')):
             gnpArray = pruneArray[val].split('\t')[3].split(',')[2:5]
-            if gnpArray[2] == '1':
-                gnpArray[2] = 'u'
-            elif gnpArray[2] == '2':
-                gnpArray[2] = 'm'
-            elif gnpArray[2] == '3':
-                gnpArray[2] = 'a'
-            elif gnpArray[2] == 'any':
-                gnpArray[2] = '-'
+            for i in range(0, 3):
+                if gnpArray[i] == '1':
+                    gnpArray[i] = 'u'
+                elif gnpArray[i] == '2':
+                    gnpArray[i] = 'm'
+                elif gnpArray[i] == '3':
+                    gnpArray[i] = 'a'
+                elif gnpArray[i] == 'any':
+                    gnpArray[i] = '-'
             # logging.debug(f'gnpArray for {wxArray[val]}: {gnpArray}')
             line5Array.append(f"[{' '.join(str(x) for x in gnpArray)}]")
         else:
@@ -273,35 +274,36 @@ def getSentenceUSR(inputString):
     # array for mapping words in wx/parser array to line2
         
 
-    logging.debug(f'VMArray: {VMArray}')
-    logging.debug(f'line2index: {line2index}')
-    logging.debug(f'Parser output: {parserOutput}')
+    # logging.debug(f'VMArray: {VMArray}')
+    # logging.debug(f'line2index: {line2index}')
+    # logging.debug(f'Parser output: {parserOutput}')
     # logging.debug(f'wxArray: {wxArray}. len = {len(wxArray)}')
     # logging.debug(f'wx_line2: {wx_line2}. len = {len(wx_line2)}')
 
     # in the below for loop, index is the index in line2, val is the index in wxArray/parser
     for index, val in enumerate(line2index):
         relatedTo = int(parserOutput[val][6])
+        # logging.debug(f'At word {wxArray[val]}. This word is related to: {line2index.index(wx_line2[relatedTo])+1} {line2Array[line2index.index(wx_line2[relatedTo])]}')
         if (parserOutput[val][7] in ('nmod__adj', 'adv', 'pof__cn', 'jjmod__intf', 'r6')):
             if (parserOutput[val][3] == 'QC'):
-                line6Array.append(f'{line2index.index(wx_line2[relatedTo])+1}:card')
+                line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:card')
             elif (parserOutput[val][3] == 'QO'):
-                line6Array.append(f'{line2index.index(wx_line2[relatedTo])+1}:ord')
+                line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:ord')
             elif (parserOutput[val][7] == 'adv'):
-                line6Array.append(f'{line2index.index(wx_line2[relatedTo])+1}:kr_vn')
+                line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:kr_vn')
             elif (parserOutput[val][7] == 'nmod__adj'):
-                line6Array.append(f'{line2index.index(wx_line2[relatedTo])+1}:mod')
+                line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:mod')
             elif (parserOutput[val][7] == 'pof__cn'):
-                line6Array.append(f'{line2index.index(val)+1}.{val}/{line2index.index(val)+1}.{relatedTo}:pof__cn')
+                line6Array.append(f'{line2index.index(val)+1}.{val+1}/{line2index.index(val)+1}.{relatedTo}:pof__cn')
             else:
-                line6Array.append(f'{line2index.index(wx_line2[relatedTo])+1}:{parserOutput[val][7]}')
+                line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:{parserOutput[val][7]}')
         elif ((int(parserOutput[val][6])-1 in VMArray) and (parserOutput[val][3] != 'VM') and (parserOutput[val][7] not in ('pof', 'rysm', 'lwg__vaux', 'lwg__vaux_cont', 'lwg__psp'))):
             if ((parserOutput[val][7] == 'k1') and (parserOutput[val+1][7] == 'k1s') and (parserOutput[val][6] == parserOutput[val+1][6])):
                 line6Array.append('samAnAXi,samAnAXi')
             elif (parserOutput[val][7] == 'k1s'):
                 line6Array.append('')
             else:
-                line6Array.append(f'{line2index.index(wx_line2[relatedTo])+1}:{parserOutput[val][7]}')
+                line6Array.append(f'{line2index.index(wx_line2[relatedTo-1])+1}:{parserOutput[val][7]}')
         else:
             line6Array.append('')
 
@@ -323,14 +325,8 @@ def getSentenceUSR(inputString):
     # line 8 - speaker's view points
 
     line8Array = []
-    for val in line2index:
-        if (parserOutput[val][7] in ('lwg__rp', 'lwg__neg')):
-            if (parserOutput[val][7] == 'lwg__neg'):
-                line8Array.append(f'{val}:neg')
-            else:
-                line8Array.append(f'{val}:{wxArray[val]}')
-        else:
-            line8Array.append('')
+    for index, value in enumerate(line2Array):
+        line8Array.append('')
     
     line8String = ",".join(str(x) for x in line8Array)
 
@@ -387,6 +383,6 @@ def getUSR(inputString):
     return returnDict
 
 # if __name__ == "__main__":
-#     object = json.dumps(getUSR(input), indent=4)
-#     print(object)
-#     # print(main(input))
+#     # object = json.dumps(getUSR(input), indent=4)
+#     # print(object)
+#     print(getUSR(input))
